@@ -1,0 +1,133 @@
+ANSIBLE-CASE-STUDY 
+
+worker 1 = 54.163.75.153
+worker 2 = 54.82.80.108
+
+Sure, I'll provide you with a detailed solution using Ansible roles to achieve the tasks outlined for configuring Apache and Nginx server groups and installing Java on the Apache server group.
+1. Directory Structure:
+   First, let's set up the directory structure for Ansible roles and playbook:
+   ```
+   ansible/
+   ├── roles
+   │   ├── apache
+   │   │   └── tasks
+   │   │       └── main.yml
+   │   ├── nginx
+   │   │   └── tasks
+   │   │       └── main.yml
+   │   ├── java
+   │   │   └── tasks
+   │   │       └── main.yml
+   ├── playbook.yml
+   └── inventory.ini
+   ```
+2. inventory.ini:
+
+   Create an inventory file (`inventory.ini`) with the IP addresses of the servers in respective groups:
+
+   ```ini
+   [apache_servers]
+   apache_server1 ansible_host=192.168.1.10
+   [nginx_servers]
+   nginx_server1 ansible_host=192.168.1.11
+   ```
+
+3. Roles for Apache and Nginx:
+
+   In `roles/apache/tasks/main.yml`, define tasks for Apache setup:
+
+   ```yaml
+   ---
+   - name: Install Apache
+     apt:
+       name: apache2
+       state: present
+
+   - name: Push Apache HTML file
+     copy:
+       content: "<html><body>Apache Server</body></html>"
+       dest: /var/www/html/index.html
+
+   - name: Start Apache service
+     systemd:
+       name: apache2
+       state: started
+
+   - name: Post-installation message for Apache
+     debug:
+       msg: "Apache installation and setup completed."
+   ```
+   In `roles/nginx/tasks/main.yml`, define tasks for Nginx setup:
+
+   ```yaml
+   ---
+   - name: Install Nginx
+     apt:
+       name: nginx
+       state: present
+
+   - name: Push Nginx HTML file
+     copy:
+       content: "<html><body>Nginx Server</body></html>"
+       dest: /usr/share/nginx/html/index.html
+
+   - name: Start Nginx service
+     systemd:
+       name: nginx
+       state: started
+
+   - name: Post-installation message for Nginx
+     debug:
+       msg: "Nginx installation and setup completed."
+   ```
+
+4. Role for Java:
+
+   In `roles/java/tasks/main.yml`, define tasks to install Java on Apache server group:
+
+   ```yaml
+   ---
+   - name: Install Java
+     apt:
+       name: default-jdk
+       state: present
+
+   - name: Post-installation message for Java
+     debug:
+       msg: "Java installation completed."
+   ```
+
+5. Playbook (playbook.yml):
+
+   Use the defined roles in a playbook to achieve the specified tasks:
+
+   ```yaml
+   ---
+   - name: Configure Apache and Nginx server groups
+     hosts: apache_servers
+     become: yes
+     roles:
+       - apache
+
+   - name: Configure Nginx server group
+     hosts: nginx_servers
+     become: yes
+     roles:
+       - nginx
+
+   - name: Install Java on Apache server group
+     hosts: apache_servers
+     become: yes
+     roles:
+       - java
+   ```
+
+6. Executing the Playbook:
+
+   Run the playbook using the `ansible-playbook` command:
+
+   ```bash
+   ansible-playbook -i inventory.ini playbook.yml
+   ```
+
+This playbook will configure Apache and Nginx server groups, push HTML files, start the services, and install Java on the Apache server group as per the defined roles and tasks. Adjust the IP addresses and specific configurations based on your environment.
